@@ -164,7 +164,7 @@ def parseCards(data, cursor):
             '"' + parseList(card['colors']) + '"' if 'colors' in card.keys() else "NULL",
             card['type'],
             '"' + card['text'].replace('"','\\"') + '"' if 'text' in card.keys() else "NULL",
-            '"' + card['power'] + '"' if '' in card.keys() else "NULL",
+            '"' + card['power'] + '"' if 'power' in card.keys() else "NULL",
             '"' + card['toughness'] + '"' if 'toughness' in card.keys() else "NULL",
             card['loyalty'] if 'loyalty' in card.keys() else "NULL",
             card['hand'] if 'hand' in card.keys() else "NULL",
@@ -205,10 +205,8 @@ def parseCards(data, cursor):
 #download_mtgjson()
 #warnings.filterwarnings('error')
 conn, cursor = sql_connect()
-#data = load_mtgjson()
-#drop_sql_tables(cursor);
-#setup_sql_db(cursor)
-#parseSets(data, cursor)
-#parseCards(data, cursor)
-#conn.commit()
-#conn.close()
+data = load_mtgjson()
+drop_sql_tables(cursor);
+setup_sql_db(cursor)
+parseSets(data, cursor)
+parseCards(data, cursor)

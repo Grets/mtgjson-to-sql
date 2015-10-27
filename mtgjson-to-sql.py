@@ -66,18 +66,16 @@ def setup_sql_db(cursor):
   #print(current_tables)
   if ('sets',) not in current_tables:
     cursor.execute("CREATE TABLE sets ("+
-    "name varchar(255),"+
+    "setName varchar(255),"+
     "code varchar(8),"+
-    "releaseDate date,"+
-    "border varchar(16),"+
-    "type varchar(16),"+
+    "setType varchar(16),"+
     "block varchar(255),"+
     "onlineOnly BIT,"+
-    "PRIMARY KEY (name));")
+    "PRIMARY KEY (setName));")
   if ('cards',) not in current_tables:
     cursor.execute("CREATE TABLE cards ("+
     "layout varchar(255),"+
-    " name varchar(255),"+
+    " cardName varchar(255),"+
     " otherName varchar(255),"+
     " manaCost varchar(255),"+
     " cmc INT UNSIGNED,"+
@@ -95,11 +93,11 @@ def setup_sql_db(cursor):
     " modern SET('Banned','Restricted','Legal'),"+
     " standard SET('Banned','Restricted','Legal'),"+
     " commander SET('Banned','Restricted','Legal'),"+
-    " PRIMARY KEY(name));")
+    " PRIMARY KEY(cardName));")
   if ('card_set_info',) not in current_tables:
     cursor.execute("CREATE TABLE card_set_info ("+
-    "cardName varchar(255),"+
-    " setName varchar(255),"+
+    "_cardName varchar(255),"+
+    " _setName varchar(255),"+
     " rarity varchar(32),"+
     " flavor TEXT,"+
     " artist varchar(255),"+
@@ -115,18 +113,16 @@ def setup_sql_db(cursor):
     " originalType varchar(255),"+
     " source varchar(255),"+
     " imageName varchar(255),"+
-    " CONSTRAINT cardID PRIMARY KEY(cardName, setName, imageName),"+
-    " FOREIGN KEY (cardName) REFERENCES cards(name),"+
-    " FOREIGN KEY (setName) REFERENCES sets(name) );")
+    " CONSTRAINT cardID PRIMARY KEY(_cardName, _setName, imageName),"+
+    " FOREIGN KEY (_cardName) REFERENCES cards(cardName),"+
+    " FOREIGN KEY (_setName) REFERENCES sets(setName) );")
 
 def parseSets(data, cursor):
   for key in list(data.keys()):
     this_set = data[key]
-    sql_command = 'INSERT INTO sets VALUES ("%s", "%s", "%s", "%s", "%s", %s, %s);'%(
+    sql_command = 'INSERT INTO sets VALUES ("%s", "%s", "%s", %s, %s);'%(
         this_set['name'].replace('"','\\"'),
         this_set['code'],
-        this_set['releaseDate'],
-        this_set['border'],
         this_set['type'],
         '"' + this_set['block'] + '"' if 'block' in this_set.keys() else 'NULL',
         this_set['onlineOnly'] if 'onlineOnly' in this_set.keys() else 'NULL')
@@ -158,7 +154,7 @@ def parseCards(data, cursor):
           sql_command = 'INSERT INTO cards VALUES ("%s", "%s", %s, %s, %s, %s, "%s", %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'%(
             card['layout'],
             card['name'].replace('"','\\"'),
-            '"' + card['names'][1-card['names'].index(card['name'])] + '"' if 'names' in card.keys() else "NULL",
+            '"' + parseList(card['names']) + '"' if 'names' in card.keys() else "NULL",
             '"' + card['manaCost'] + '"' if 'manaCost' in card.keys() else "NULL",
             card['cmc'] if 'cmc' in card.keys() else 0,
             '"' + parseList(card['colors']) + '"' if 'colors' in card.keys() else "NULL",
@@ -187,9 +183,9 @@ def parseCards(data, cursor):
           card['multiverseid'] if 'multiverseid' in card.keys() else "NULL",
           '"' + parseList(card['variations']) + '"'  if 'variations' in card.keys() else "NULL",
           '"' + card['watermark'] + '"'  if 'watermark' in card.keys() else "NULL",
-          '"' + card['border'] + '"'  if 'border' in card.keys() else "NULL",
+          '"' + card['border'] + '"'  if 'border' in card.keys() else '"' + _set['border'] + '"',
           card['timeshifted'] if 'timeshifted' in card.keys() else "NULL",
-          padDate(card['releaseDate']) if 'releaseDate' in card.keys() else "NULL",
+          padDate(card['releaseDate']) if 'releaseDate' in card.keys() else padDate(_set['releaseDate']),
           card['starter'] if 'starter' in card.keys() else "NULL",
           '"' + card['originalText'].replace('"','\\"') + '"'  if 'originalText' in card.keys() else "NULL",
           '"' + card['originalType'] + '"'  if 'originalType' in card.keys() else "NULL",
